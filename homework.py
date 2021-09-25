@@ -33,13 +33,14 @@ class Calculator(Record):
     def get_week_stats(self):
         today = dt.date.today()
         week_ago = today - self.TIME_DELTA
-        return sum(rec for rec in self.records if today >= rec.date > week_ago)
+        return sum(rec.amount for rec in self.records
+                   if today >= rec.date > week_ago)
 
 
 class CashCalculator(Calculator):
 
-    USD_RATE = 72.71
-    EURO_RATE = 85.25
+    USD_RATE = 60.0
+    EURO_RATE = 70.0
 
     cur = {
         'usd': [USD_RATE, 'USD'],
