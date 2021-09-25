@@ -3,18 +3,21 @@ import datetime as dt
 
 class Record:
 
+    DATE_FORMAT = '%d.%m.%Y'
+
     def __init__(self, amount, comment, date=None):
         self.amount = amount
         self.comment = comment
-        date_format = '%d.%m.%Y'
         if date is None:
             self.date = dt.date.today()
         else:
-            moment = dt.datetime.strptime(date, date_format)
+            moment = dt.datetime.strptime(date, Record.DATE_FORMAT)
             self.date = moment.date()
 
 
 class Calculator(Record):
+
+    TIME_DELTA = dt.timedelta(days=7)
 
     def __init__(self, limit):
         self.limit = limit
@@ -24,19 +27,13 @@ class Calculator(Record):
         self.records.append(record)
 
     def get_today_stats(self):
-        sum_today = 0
-        for record in self.records:
-            if record.date == dt.date.today():
-                sum_today += record.amount
-        return sum_today
+        today = dt.date.today()
+        return sum(rec.amount for rec in self.records if rec.date == today)
 
     def get_week_stats(self):
-        sum_week = 0
-        date_week_ago = dt.date.today() - dt.timedelta(days=7)
-        for record in self.records:
-            if dt.date.today() >= record.date > date_week_ago:
-                sum_week += record.amount
-        return sum_week
+        today = dt.date.today()
+        week_ago = today - self.TIME_DELTA
+        return sum(rec for rec in self.records if today >= rec.date > week_ago)
 
 
 class CashCalculator(Calculator):
@@ -44,45 +41,45 @@ class CashCalculator(Calculator):
     USD_RATE = 72.71
     EURO_RATE = 85.25
 
-    def __init__(self, limit):
-        super().__init__(limit)
+    cur = {
+        'usd': [USD_RATE, 'USD'],
+        'eur': [EURO_RATE, 'Euro'],
+        'rub': [1, 'руб']
+    }
+
+    REM = 'На сегодня осталось {rem} {curr}'
+    DUT = 'Денег нет, держись: твой долг - {duty} {curr}'
+    LIM = 'Денег нет, держись'
 
     def get_today_cash_remained(self, currency):
-        if self.get_today_stats() < self.limit:
-            difference = self.limit - self.get_today_stats()
-            if currency == 'usd':
-                reminder = difference / CashCalculator.USD_RATE
-                return f'На сегодня осталось {round(reminder, 2)} USD'
-            elif currency == 'eur':
-                reminder = difference / CashCalculator.EURO_RATE
-                return f'На сегодня осталось {round(reminder, 2)} Euro'
-            else:
-                return f'На сегодня осталось {round(difference, 2)} руб'
-        elif self.get_today_stats() == self.limit:
-            return 'Денег нет, держись'
-        else:
-            difference = self.get_today_stats() - self.limit
-            print(difference)
-            if currency == 'usd':
-                duty = difference / CashCalculator.USD_RATE
-                return f'Денег нет, держись: твой долг - {round(duty, 2)} USD'
-            elif currency == 'eur':
-                duty = difference / CashCalculator.EURO_RATE
-                return f'Денег нет, держись: твой долг - {round(duty, 2)} Euro'
-            else:
-                duty = difference
-                return f'Денег нет, держись: твой долг - {round(duty, 2)} руб'
+        today_stats = self.get_today_stats()
+        difference = (self.limit - today_stats) / self.cur[currency][0]
+        remainder = round(difference, 2)
+        if today_stats < self.limit:
+            return self.REM.format(rem=remainder, curr=self.cur[currency][1])
+        elif today_stats > self.limit:
+            return self.DUT.format(duty=-remainder, curr=self.cur[currency][1])
+        return self.LIM
 
 
 class CaloriesCalculator(Calculator):
 
-    def __init__(self, limit):
-        super().__init__(limit)
+    REM = ('Сегодня можно съесть что-нибудь ещё,'
+           ' но с общей калорийностью не более {rem} кКал')
+    LIM = 'Хватит есть!'
 
     def get_calories_remained(self):
-        if self.get_today_stats() < self.limit:
-            remainder = self.limit - self.get_today_stats()
-            return ('Сегодня можно съесть что-нибудь ещё,'
-                    f' но с общей калорийностью не более {remainder} кКал')
-        else:
-            return 'Хватит есть!'
+        today_stats = self.get_today_stats()
+        if today_stats < self.limit:
+            remainder = self.limit - today_stats
+            return self.REM.format(rem=remainder)
+        return self.LIM
+
+
+r1 = Record(17, 'dgfb')
+r2 = Record(3, "fbd")
+
+r = CaloriesCalculator(20)
+r.add_record(r1)
+r.add_record(r2)
+print(r.get_calories_remained())
