@@ -75,12 +75,3 @@ class CaloriesCalculator(Calculator):
             remainder = self.limit - today_stats
             return self.REM.format(rem=remainder)
         return self.LIM
-
-
-r1 = Record(17, 'dgfb')
-r2 = Record(3, "fbd")
-
-r = CaloriesCalculator(20)
-r.add_record(r1)
-r.add_record(r2)
-print(r.get_calories_remained())
