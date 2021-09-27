@@ -55,16 +55,19 @@ class CashCalculator(Calculator):
 
     def get_today_cash_remained(self, currency):
         today_stats = self.get_today_stats()
-        if today_stats == self.limit:
-            return self.LIMIT
-        rate = self.CURRENCIES[currency][0]
-        name = self.CURRENCIES[currency][1]
-        difference = (self.limit - today_stats) / rate
-        remainder = round(difference, 2)
-        if today_stats < self.limit:
-            return self.REMAINDER.format(insert_remainder=remainder,
-                                         insert_currency=name)
-        return self.DUTY.format(insert_duty=-remainder, insert_currency=name)
+        if currency in self.CURRENCIES:
+            if today_stats == self.limit:
+                return self.LIMIT
+            rate = self.CURRENCIES[currency][0]
+            name = self.CURRENCIES[currency][1]
+            difference = (self.limit - today_stats) / rate
+            remainder = round(difference, 2)
+            if today_stats < self.limit:
+                return self.REMAINDER.format(insert_remainder=remainder,
+                                             insert_currency=name)
+            return self.DUTY.format(insert_duty=-remainder,
+                                    insert_currency=name)
+        return "Не знаю такой валюты"
 
 
 class CaloriesCalculator(Calculator):
