@@ -78,4 +78,4 @@ class CaloriesCalculator(Calculator):
         if today_stats < self.limit:
             return (self.REMAINDER.format(
                     insert_remainder=self.limit - today_stats))
-        return self.LIMIT
+
