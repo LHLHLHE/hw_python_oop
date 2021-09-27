@@ -79,12 +79,3 @@ class CaloriesCalculator(Calculator):
             return (self.REMAINDER.format(
                     insert_remainder=self.limit - today_stats))
         return self.LIMIT
-
-
-r1 = Record(12, 'sefg')
-r2 = Record(3, 'rgdf')
-
-r = CashCalculator(20)
-r.add_record(r1)
-r.add_record(r2)
-print(r.get_today_cash_remained('rub'))
