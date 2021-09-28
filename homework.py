@@ -44,9 +44,9 @@ class CashCalculator(Calculator):
     EURO_RATE = 70.0
 
     CURRENCIES = {
-        'usd': [USD_RATE, 'USD'],
-        'eur': [EURO_RATE, 'Euro'],
-        'rub': [1, 'руб']
+        'usd': ['USD', USD_RATE],
+        'eur': ['Euro', EURO_RATE],
+        'rub': ['руб', 1]
     }
 
     REMAINDER = 'На сегодня осталось {insert_remainder} {insert_currency}'
@@ -58,8 +58,8 @@ class CashCalculator(Calculator):
         if currency in self.CURRENCIES:
             if today_stats == self.limit:
                 return self.LIMIT
-            rate = self.CURRENCIES[currency][0]
-            name = self.CURRENCIES[currency][1]
+            rate = self.CURRENCIES[currency][1]
+            name = self.CURRENCIES[currency][0]
             difference = (self.limit - today_stats) / rate
             remainder = round(difference, 2)
             if today_stats < self.limit:
