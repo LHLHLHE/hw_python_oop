@@ -52,11 +52,13 @@ class CashCalculator(Calculator):
     REMAINDER = 'На сегодня осталось {remainder} {currency}'
     DUTY = 'Денег нет, держись: твой долг - {duty} {currency}'
     LIMIT = 'Денег нет, держись'
-    KEY_ERROR = 'Некорректное значение валюты: {unknown_currency}'
+    VALUE_ERROR = 'Некорректное значение валюты: {unknown_currency}'
 
     def get_today_cash_remained(self, currency):
         if currency not in self.CURRENCIES:
-            raise KeyError(self.KEY_ERROR.format(unknown_currency=currency))
+            raise ValueError(
+                self.VALUE_ERROR.format(unknown_currency=currency)
+            )
         today_stats = self.get_today_stats()
         if today_stats == self.limit:
             return self.LIMIT
