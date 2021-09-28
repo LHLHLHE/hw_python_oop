@@ -17,7 +17,7 @@ class Record:
 
 class Calculator(Record):
 
-    TIME_DELTA = dt.timedelta(days=7)
+    DELTA_WEEK = dt.timedelta(days=7)
 
     def __init__(self, limit):
         self.limit = limit
@@ -33,9 +33,9 @@ class Calculator(Record):
 
     def get_week_stats(self):
         today = dt.date.today()
-        week_ago = today - self.TIME_DELTA
+        week_ago = today - self.DELTA_WEEK
         return sum(rec.amount for rec in self.records
-                   if today >= rec.date > week_ago)
+                   if week_ago < rec.date <= today)
 
 
 class CashCalculator(Calculator):
@@ -49,36 +49,35 @@ class CashCalculator(Calculator):
         'rub': ['руб', 1]
     }
 
-    REMAINDER = 'На сегодня осталось {insert_remainder} {insert_currency}'
-    DUTY = 'Денег нет, держись: твой долг - {insert_duty} {insert_currency}'
+    REMAINDER = 'На сегодня осталось {remainder} {currency}'
+    DUTY = 'Денег нет, держись: твой долг - {duty} {currency}'
     LIMIT = 'Денег нет, держись'
+    KEY_ERROR = 'Некорректное значение валюты: {unknown_currency}'
 
     def get_today_cash_remained(self, currency):
+        if currency not in self.CURRENCIES:
+            raise KeyError(self.KEY_ERROR.format(unknown_currency=currency))
         today_stats = self.get_today_stats()
-        if currency in self.CURRENCIES:
-            if today_stats == self.limit:
-                return self.LIMIT
-            rate = self.CURRENCIES[currency][1]
-            name = self.CURRENCIES[currency][0]
-            difference = (self.limit - today_stats) / rate
-            remainder = round(difference, 2)
-            if today_stats < self.limit:
-                return self.REMAINDER.format(insert_remainder=remainder,
-                                             insert_currency=name)
-            return self.DUTY.format(insert_duty=-remainder,
-                                    insert_currency=name)
-        return "Не знаю такой валюты"
+        if today_stats == self.limit:
+            return self.LIMIT
+        name, rate = self.CURRENCIES[currency]
+        remainder = round((self.limit - today_stats) / rate, 2)
+        if today_stats < self.limit:
+            return self.REMAINDER.format(remainder=remainder,
+                                         currency=name)
+        return self.DUTY.format(duty=-remainder, currency=name)
 
 
 class CaloriesCalculator(Calculator):
 
     REMAINDER = ('Сегодня можно съесть что-нибудь ещё,'
-                 ' но с общей калорийностью не более {insert_remainder} кКал')
+                 ' но с общей калорийностью не более {remainder} кКал')
     LIMIT = 'Хватит есть!'
 
     def get_calories_remained(self):
         today_stats = self.get_today_stats()
         if today_stats < self.limit:
-            return (self.REMAINDER.format(
-                    insert_remainder=self.limit - today_stats))
+            return self.REMAINDER.format(
+                remainder=self.limit - today_stats
+            )
         return self.LIMIT
